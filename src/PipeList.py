@@ -2,54 +2,76 @@ import pygame, random
 class Pipe:
     pipe_surface = pygame.image.load(r"flappy-bird-assets-master\sprites\pipe-green.png")
     pipe_surface = pygame.transform.scale_by(pipe_surface, 1.2)
-    def __init__(self,pipe_pos) -> None:
+    def __init__(self,pipe_pos,flagMove) -> None:
         self.flagStop = True
-        self.flagUp = True
+        self.flagMove = flagMove
         self.rect = self.pipe_surface.get_rect(midtop = (500, pipe_pos))
         self.anchor = self.rect.bottom
 
     def blit(self, screen):
         screen.blit(self.pipe_surface,self.rect)
+
+    # def random_to_move(self):
+    #     if(self.flagMove == False):
+    #         if(random.choice([0,1]) == 1):
+    #             self.flagMove = True
+    #     return self.flagMove
     
 
 class PipeTop(Pipe):
-    def __init__(self,pipe_pos) -> None:
-        Pipe.__init__(self,pipe_pos)
+    def __init__(self,pipe_pos,flagMove) -> None:
+        Pipe.__init__(self,pipe_pos,flagMove)
         self.pipe_surface = pygame.transform.flip(self.pipe_surface, False, True)
+        self.bottomMost = 64
 
     
     def move_up_down(self):
         if(self.flagStop):
-            if(self.rect.bottom <= 64 + self.anchor * 3/10):
-                self.flagStop = False
-            else:
-                self.rect.centery -= 2
+            self.move_up()
         else:
-            if(self.rect.bottom > self.anchor):
-                self.flagStop = True
-            else:
-                self.rect.centery += 2
+            self.move_down()
+            
+    
+    def move_up(self):
+        if(self.rect.bottom >= self.anchor +20):
+            self.flagStop = False
+        else:
+            self.rect.centery += 2
+
+    def move_down(self):
+        if(self.rect.bottom <= self.bottomMost):
+            self.flagStop = True
+        else:
+            self.rect.centery -= 2
 
 class PipeBot(Pipe):
-    def __init__(self,pipe_pos) -> None:
-        Pipe.__init__(self,pipe_pos)
+    def __init__(self,pipe_pos,flagMove) -> None:
+        Pipe.__init__(self,pipe_pos,flagMove)
+        self.bottomMost = 789
 
     def move_up_down(self):
         if(self.flagStop):
-            if(self.rect.bottom >= 789):
-                self.flagStop = False
-            else:
-                self.rect.centery += 2
+            self.move_up()
         else:
-            if(self.rect.bottom < self.anchor):
-                self.flagStop = True
-            else:
-                self.rect.centery -= 2
-
+            self.move_down()
     
+    def move_up(self):
+        if(self.rect.bottom >= self.bottomMost ):
+            self.flagStop = False
+        else:
+            self.rect.centery += 2
+
+    def move_down(self):
+        if(self.rect.bottom <= self.anchor ):
+            self.flagStop = True
+        else:
+            self.rect.centery -= 2
+
+
 class PipeList:
     pipe_surface = pygame.image.load(r"flappy-bird-assets-master\sprites\pipe-green.png")
     pipe_surface = pygame.transform.scale_by(pipe_surface, 1.2)
+    movable = False
     def __init__(self) :
         #Tạo ống
         self.pipe_list = []
@@ -59,46 +81,90 @@ class PipeList:
     #Hàm tạo ống
     def create_pipe(self):
         random_pipePos = random.choice(self.pipe_height)
-        self.pipe_list.append( PipeBot(random_pipePos))
-        self.pipe_list.append(PipeTop(random_pipePos - 550))
+        if(not self.movable):
+            self.pipe_list.append( PipeBot(random_pipePos,False))
+            self.pipe_list.append(PipeTop(random_pipePos - 550,False))
+        else:
+            self.pipe_list.append( PipeBot(random_pipePos,self.coinflip()))
+            self.pipe_list.append(PipeTop(random_pipePos - 550,self.coinflip()))
 
+    def coinflip(self):
+        return random.choice([0,1]) == 1
+    
     def clear(self):
         self.pipe_list.clear()
     
     def printlist(self):
         for pipe in self.pipe_list:
-            print("Top: "+ str(pipe.rect.top) + "Bot: " + str(pipe.rect.bottom))
+            print("move: "+ str(pipe.flagMove))
         print("\n")
 
     #Hàm di chuyển ống
-    def move_pipex(self):
+    def move_pipe_horizontally(self):
         for pipe in self.pipe_list:
             pipe.rect.centerx -= 2
     
-    def move_pipey_in(self):
-        i = 0
-        for pipe in self.pipe_list_top:
-            if(pipe.flagStop):
-                if(pipe.rect.bottom <= 34):
-                    pipe.flagStop = False
-                else:
-                    pipe.rect.centery -= 2
+    def move_up_down(pipe):
+        if(pipe.flagStop):
+            if(pipe.rect.bottom <= pipe.bottomMost ):
+                pipe.flagStop = False
             else:
-                if(pipe.rect.bottom ):
-                    pipe.flagStop = True
-                else:
-                    pipe.rect.centery += 2
-        return self.pipe_list
+                pipe.rect.centery -= 2
+        else:
+            if(pipe.rect.bottom > pipe.anchor):
+                pipe.flagStop = True
+            else:
+                pipe.rect.centery += 2
+    # def move_OneByOne(self):
+
     
+
     #Hàm vẽ ống
-    def draw_pipe(self,screen,score):
-        self.move_pipex()
+    def draw_pipe(self,screen,score, ):
+        spacing = 0  #spacing phục vụ cho idea zic zac
+        self.move_pipe_horizontally()   #Important hàm luôn chạy để di chuyển ống xuất hiện sang ngang trên screen
         for pipe in self.pipe_list:
-            if(score.score < 1):
+            if(score.score < 1):    #Điểm kích hoạt di chuyển ống
                 pipe.blit(screen)
             else:
-                pipe.move_up_down()
-                pipe.blit(screen)
+            #Di chuyển ống độc lập tự ống nào ống đó tự đi     ((foundation))
+                #pipe.move_up_down() 
+                #pipe.blit(screen)
+
+            #Di chuyển ống random        ((done))
+                self.movable = True      #((cờ hiệu cho phép pipe tạo sau sẽ random thuộc tính flagmove quyết định pipe có được di chuyển hay không))
+                if(pipe.flagMove):
+                    pipe.move_up_down()
+                    pipe.blit(screen)
+                else:
+                    pipe.blit(screen)
+
+            #Thử di chuyển theo đường zic zac,   ((chưa được))
+                # if(spacing == 0):
+                #     pipe.blit(screen)
+                #     spacing += 1
+                # else:
+                #     pipe.move_up_down()
+                #     pipe.blit(screen)
+                #     if(spacing == 2):
+                #         spacing = 0
+                #     else:
+                #         spacing +=1
+
+            
+            #Thử di chuyển ống đồng bộ trên dưới     ((vẫn))
+                # if(spacing == 0):
+                #     pipe.blit(screen)
+                #     spacing += 1
+                # else:
+                #     pipe.move_up_down()
+                #     pipe.blit(screen)
+                #     if(spacing == 2):
+                #         spacing = 0
+                #     else:
+                #         spacing +=1
+
+    #Code cũ
         # else:
         #     for pipe in self.move_pipex():
         #         if (pipe.rect.bottom >= 614 - 134):

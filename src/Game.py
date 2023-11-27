@@ -205,7 +205,7 @@ class FlappyBird:
                 for eachPipe in pipe.pipe_list:
                     pipe_mid_pos = eachPipe.rect.x + eachPipe.rect.width / 2
                     if pipe_mid_pos <=  bird_mid_pos <=  pipe_mid_pos:
-                        score.score += 1
+                        score.score += 0.5
                         pygame.mixer.Sound.play(self.point)
                         pipe.printlist()
                         

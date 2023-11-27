@@ -7,4 +7,4 @@ class Main:
         game = FlappyBird()
         game.runGame()
 
-Main.run()                   
+Main.run()                      
