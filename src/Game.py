@@ -2,13 +2,17 @@ import pygame, sys
 from src.Bird import Bird
 from src.PipeList import PipeList
 from src.Score import Score
+from src.Button import Button
 from src.Floor import Floor
 from pygame import mixer
+
+window = (346, 614)
+
 class FlappyBird:
     pygame.init()
 
     #Cửa sổ game
-    screen = pygame.display.set_mode((346, 614))
+    screen = pygame.display.set_mode(window)
 
     #Tiêu đề game
     pygame.display.set_caption('Flappy Bird')
@@ -17,7 +21,6 @@ class FlappyBird:
     clock = pygame.time.Clock()
 
     #Các biến của game
-    
     time_counter = 0
     p = 0.15    #Trọng lực
     start_time = pygame.time.get_ticks()
@@ -36,7 +39,7 @@ class FlappyBird:
     #Background game
     background = pygame.image.load(r"flappy-bird-assets-master\sprites\background-day.png").convert()
     #Chỉnh background size lớn hơn
-    background = pygame.transform.scale(background, (346, 614))
+    background = pygame.transform.scale(background, window)
 
     #Tạo timer
     spawn_pipe = pygame.USEREVENT
@@ -50,8 +53,18 @@ class FlappyBird:
     #Màn hình bắt đầu game
     screen_start = pygame.image.load(r'flappy-bird-assets-master\sprites\message.png')
     screen_start = pygame.transform.scale_by(screen_start, 1.2)
-    screen_start_rect = screen_start.get_rect(center = (screen.get_rect().center))
+    screen_start_rect = screen_start.get_rect(center = (window[0]/2, window[1]/2 - 100))
 
+    #Hướng dẫn trò chơi
+    instruction = pygame.font.Font(r'flappy-bird-assets-master\04B_19__.TTF', 20).render("Press Space to start !!!", True, (235, 94, 104))
+    instruction_container = instruction.get_rect()
+    instruction_container.center = (window[0] / 2 , 300)
+
+    #Các nút
+    new_game_btn = Button((window[0]/2 - 35, window[1]/2 + 30), (255, 94, 14), "New Game", (255, 255, 255))
+    continue_btn = Button((window[0]/2 - 35, window[1]/2 + 80), (255, 94, 14), "Continue", (255, 255, 255))
+    exit_btn = Button((window[0]/2 - 35, window[1]/2 + 130), (255, 94, 14), "Quit", (255, 255, 255))
+    
     pipe_surface = pygame.image.load(r"flappy-bird-assets-master\sprites\pipe-red.png")
     pipe_surface = pygame.transform.scale_by(pipe_surface, 1.2)
     pipe_surface_rect = pipe_surface.get_rect(midtop = (500, 400))
@@ -65,7 +78,7 @@ class FlappyBird:
 
     #Hàm xử lý va chạm
     def check_collision(self,bird,pipes):
-        if (bird.bird_rect.bottom >= 614 - 134):
+        if (bird.bird_rect.bottom >= window[1] - 134):
             pygame.mixer.Sound.play(self.hit)
             return False
         for pipe in pipes:
@@ -81,12 +94,13 @@ class FlappyBird:
         pipe = PipeList()
         score = Score()
         floor = Floor()
+        
         #Vòng lặp xử lí game
         while True:
             score.read_high_score('high_score.txt')
-            
+
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:   #Event thoát game
+                if event.type == pygame.QUIT or self.exit_btn.clicked:   #Event thoát game
                     pygame.quit()
                     sys.exit()
                     
@@ -100,6 +114,7 @@ class FlappyBird:
                     if event.key == pygame.K_SPACE and self.show_start_screen:
                         self.screen_start_rect.centerx = 1000
                         self.screen_start_rect.centery = 1000
+                        self.instruction_container.x, self.instruction_container.y = 1000, 1000 
                         self.show_start_screen = False
                     
                     #Event bay của chim
@@ -111,7 +126,7 @@ class FlappyBird:
                         self.game_play = True
                         pipe.clear()
                         bird.bird_y = 0
-                        bird.bird_rect.center = (50, (614 - 134)/2)
+                        bird.bird_rect.center = (50, (window[1] - 134)/2)
                         score.score = 0
                     
                     #Event di chuyển pointer chọn skin chim sang phải
@@ -149,7 +164,7 @@ class FlappyBird:
                     self.background = pygame.image.load(r"flappy-bird-assets-master\sprites\background-night.png").convert()
                 else:
                     self.background = pygame.image.load(r"flappy-bird-assets-master\sprites\background-day.png").convert()
-                self.background = pygame.transform.scale(self.background, (346, 614))
+                self.background = pygame.transform.scale(self.background, window)
                 self.is_day = False
                 self.time_counter = 0
 
@@ -161,6 +176,10 @@ class FlappyBird:
             
             #Vẽ màn hình bắt đầu
             self.screen.blit(self.screen_start, self.screen_start_rect)
+            self.screen.blit(self.instruction, self.instruction_container)
+            self.new_game_btn.draw(self.screen)
+            self.continue_btn.draw(self.screen)
+            self.exit_btn.draw(self.screen)
             
             #Vẽ màn hình chọn skin chim
             if self.choose_skin == False and self.show_start_screen == False:
