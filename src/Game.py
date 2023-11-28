@@ -55,15 +55,12 @@ class FlappyBird:
     screen_start = pygame.transform.scale_by(screen_start, 1.2)
     screen_start_rect = screen_start.get_rect(center = (window[0]/2, window[1]/2 - 100))
 
-    #Hướng dẫn trò chơi
-    instruction = pygame.font.Font(r'flappy-bird-assets-master\04B_19__.TTF', 20).render("Press Space to start !!!", True, (235, 94, 104))
-    instruction_container = instruction.get_rect()
-    instruction_container.center = (window[0] / 2 , 300)
-
     #Các nút
-    new_game_btn = Button((window[0]/2 - 35, window[1]/2 + 30), (255, 94, 14), "New Game", (255, 255, 255))
-    continue_btn = Button((window[0]/2 - 35, window[1]/2 + 80), (255, 94, 14), "Continue", (255, 255, 255))
-    exit_btn = Button((window[0]/2 - 35, window[1]/2 + 130), (255, 94, 14), "Quit", (255, 255, 255))
+    btn_x_pos = window[0]/2 - Button.size[0]/2
+    new_game_btn = Button((btn_x_pos, window[1]/2 + 30), (255, 94, 14), "New Game", (255, 255, 255))
+    continue_btn = Button((btn_x_pos, window[1]/2 + 100), (255, 94, 14), "Continue", (255, 255, 255))
+    exit_btn = Button((btn_x_pos, window[1]/2 + 170), (255, 94, 14), "Quit", (255, 255, 255))
+    restart_btn = Button((btn_x_pos, window[1]/2 + 100), (255, 94, 14), "Restart", (255, 255, 255))
     
     pipe_surface = pygame.image.load(r"flappy-bird-assets-master\sprites\pipe-red.png")
     pipe_surface = pygame.transform.scale_by(pipe_surface, 1.2)
@@ -111,24 +108,26 @@ class FlappyBird:
                     bird.Bird_Flap()
                     
                 if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE and self.show_start_screen:
+                    '''if event.key == pygame.K_SPACE and self.show_start_screen:
                         self.screen_start_rect.centerx = 1000
                         self.screen_start_rect.centery = 1000
-                        self.instruction_container.x, self.instruction_container.y = 1000, 1000 
-                        self.show_start_screen = False
+                        self.show_start_screen = False'''
                     
                     #Event bay của chim
                     if event.key == pygame.K_SPACE and self.game_play and self.choose_skin:
                         bird.bird_y = -5
                         pygame.mixer.Sound.play(bird.wing)
-                        
-                    if event.key == pygame.K_SPACE and self.game_play == False:  #Cho phép chơi lại
-                        self.game_play = True
-                        pipe.clear()
-                        bird.bird_y = 0
-                        bird.bird_rect.center = (50, (window[1] - 134)/2)
-                        score.score = 0
+
+                    #Event di chuyển pointer chọn nút đầu game
+                    if event.key == pygame.K_UP and self.show_start_screen:
+                        pygame.mixer.Sound.play(bird.move_pointer)
+                        bird.move_pointer_RIGHT()
                     
+                    #Event di chuyển pointer chọn nút đầu game
+                    if event.key == pygame.K_DOWN and self.show_start_screen:   
+                        pygame.mixer.Sound.play(bird.move_pointer)
+                        bird.move_pointer_LEFT()
+
                     #Event di chuyển pointer chọn skin chim sang phải
                     if event.key == pygame.K_RIGHT and self.choose_skin == False and self.show_start_screen == False and self.show_choose_skin_screen:
                         pygame.mixer.Sound.play(bird.move_pointer)
@@ -176,11 +175,26 @@ class FlappyBird:
             
             #Vẽ màn hình bắt đầu
             self.screen.blit(self.screen_start, self.screen_start_rect)
-            self.screen.blit(self.instruction, self.instruction_container)
-            self.new_game_btn.draw(self.screen)
-            self.continue_btn.draw(self.screen)
-            self.exit_btn.draw(self.screen)
-            
+
+            #Vẽ các nút
+            if self.show_start_screen:
+                self.new_game_btn.draw(self.screen)
+                self.continue_btn.draw(self.screen)
+                self.exit_btn.draw(self.screen)
+
+            #Xử lý việc ấn các nút New Game và Continue
+            if self.show_start_screen and self.new_game_btn.clicked == False and self.continue_btn.clicked == False:
+                if self.new_game_btn.clicked:
+                    score.high_score = -1
+                    score.update_hightScore()
+                    self.new_game_btn.clicked = False
+                elif self.continue_btn.clicked:
+                    self.continue_btn.clicked = False
+            if self.new_game_btn.clicked or self.continue_btn.clicked and self.show_start_screen:
+                self.screen_start_rect.centerx = 1000
+                self.screen_start_rect.centery = 1000
+                self.show_start_screen = False
+
             #Vẽ màn hình chọn skin chim
             if self.choose_skin == False and self.show_start_screen == False:
                 bird.draw_choose_skin_screen(self.screen,self.game_font)
@@ -190,7 +204,7 @@ class FlappyBird:
                 #Thêm chim vào game:
                 bird.add_bird(self.screen)
                 
-                #Ốnga
+                #Vẽ ống
                 pipe.draw_pipe(self.screen,score)
                 # for i in range(10):
                 # if(score.score < 1):
@@ -220,8 +234,18 @@ class FlappyBird:
             elif self.game_play == False and self.show_start_screen == False and self.choose_skin: 
                 self.screen.blit(self.screen_over, self.screen_over_rect)
                 score.score_view(self.screen,self.game_font,self.game_play)
+                self.restart_btn.draw(self.screen)
+                self.exit_btn.draw(self.screen)
                 self.screen_start_rect.centerx = 1000
                 self.screen_start_rect.centery = 1000
+
+            if self.restart_btn.clicked and self.game_play == False:  #Cho phép chơi lại
+                self.game_play = True
+                self.restart_btn.clicked = False
+                pipe.clear()
+                bird.bird_y = 0
+                bird.bird_rect.center = (50, (window[1] - 134)/2)
+                score.score = 0
             
             pygame.display.update()
             

@@ -98,39 +98,20 @@ class Bird:
     
     #Hàm chọn chim xanh
     def choose_bluebird(self):
-        self.bird_mid = pygame.image.load(r"flappy-bird-assets-master\sprites\bluebird-midflap.png").convert_alpha()
-        self.bird_up = pygame.image.load(r"flappy-bird-assets-master\sprites\bluebird-upflap.png").convert_alpha()
-        self.bird_down = pygame.image.load(r"flappy-bird-assets-master\sprites\bluebird-downflap.png").convert_alpha()
-        
-        self.bird_mid = pygame.transform.scale_by(self.bird_mid, 1.2)
-        self.bird_up = pygame.transform.scale_by(self.bird_up, 1.2)
-        self.bird_down = pygame.transform.scale_by(self.bird_down, 1.2)
-
-        self.bird_list = [self.bird_down, self.bird_mid, self.bird_down]
-        self.bird_index = 0
-        self.bird = self.bird_list[self.bird_index]
-        self.bird_rect = self.bird.get_rect(center = (50, (614 - 134)/2))
+        self.setup_bird("bluebird")
     
     #Hàm chọn chim đỏ
     def choose_redbird(self):
-        self.bird_mid = pygame.image.load(r"flappy-bird-assets-master\sprites\redbird-midflap.png").convert_alpha()
-        self.bird_up = pygame.image.load(r"flappy-bird-assets-master\sprites\redbird-upflap.png").convert_alpha()
-        self.bird_down = pygame.image.load(r"flappy-bird-assets-master\sprites\redbird-downflap.png").convert_alpha()
-        
-        self.bird_mid = pygame.transform.scale_by(self.bird_mid, 1.2)
-        self.bird_up = pygame.transform.scale_by(self.bird_up, 1.2)
-        self.bird_down = pygame.transform.scale_by(self.bird_down, 1.2)
-
-        self.bird_list = [self.bird_down, self.bird_mid, self.bird_down]
-        self.bird_index = 0
-        self.bird = self.bird_list[self.bird_index]
-        self.bird_rect = self.bird.get_rect(center = (50, (614 - 134)/2))
+        self.setup_bird("redbird")
     
     #Hàm chọn chim vàng
     def choose_yellowbird(self):
-        self.bird_mid = pygame.image.load(r"flappy-bird-assets-master\sprites\yellowbird-midflap.png").convert_alpha()
-        self.bird_up = pygame.image.load(r"flappy-bird-assets-master\sprites\yellowbird-upflap.png").convert_alpha()
-        self.bird_down = pygame.image.load(r"flappy-bird-assets-master\sprites\yellowbird-downflap.png").convert_alpha()
+        self.setup_bird("yellowbird")
+
+    def setup_bird(self, bird_type):
+        self.bird_mid = pygame.image.load(rf"flappy-bird-assets-master\sprites\{bird_type}-midflap.png").convert_alpha() 
+        self.bird_up = pygame.image.load(rf"flappy-bird-assets-master\sprites\{bird_type}-upflap.png").convert_alpha()
+        self.bird_down = pygame.image.load(rf"flappy-bird-assets-master\sprites\{bird_type}-downflap.png").convert_alpha()
         
         self.bird_mid = pygame.transform.scale_by(self.bird_mid, 1.2)                   
         self.bird_up = pygame.transform.scale_by(self.bird_up, 1.2)
@@ -139,4 +120,4 @@ class Bird:
         self.bird_list = [self.bird_down, self.bird_mid, self.bird_down]
         self.bird_index = 0
         self.bird = self.bird_list[self.bird_index]
-        self.bird_rect = self.bird.get_rect(center = (50, (614 - 134)/2))     
+        self.bird_rect = self.bird.get_rect(center = (50, (614 - 134)/2))  
