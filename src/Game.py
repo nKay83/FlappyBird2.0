@@ -77,10 +77,12 @@ class FlappyBird:
     def check_collision(self,bird,pipes):
         if (bird.bird_rect.bottom >= window[1] - 134):
             pygame.mixer.Sound.play(self.hit)
+            pygame.mixer.Sound.play(self.die)
             return False
         for pipe in pipes:
             if bird.bird_rect.colliderect(pipe):
                 pygame.mixer.Sound.play(self.hit)
+                pygame.mixer.Sound.play(self.die)
                 return False
         return True
 
@@ -147,6 +149,15 @@ class FlappyBird:
                             bird.choose_yellowbird()
                             self.choose_skin = True
                             self.show_choose_skin_screen = False
+                    
+                    #Event cho phép chơi lại khi nhấn space
+                    if event.key == pygame.K_SPACE and self.game_play == False:
+                        self.restart_btn.clicked = True
+                    
+                    #Event cho phép chọn lại skin chim khi nhấn phím c
+                    if event.key == pygame.K_c and self.game_play == False:
+                        self.choose_skin = False
+                        self.show_start_screen = False
 
             # Cập nhật thời gian
             self.time_counter += pygame.time.get_ticks() - self.start_time
@@ -233,8 +244,14 @@ class FlappyBird:
                 self.exit_btn.draw(self.screen)
                 self.screen_start_rect.centerx = 1000
                 self.screen_start_rect.centery = 1000
+                #Thêm dòng chữ "Press c key to choose skin"
+                new_font = pygame.font.Font(r'flappy-bird-assets-master\04B_19__.TTF', 20)
+                choose_skin_surface = new_font.render(f'Press c key to choose skin', True, "#D9FFFFFF")
+                choose_skin_rect = choose_skin_surface.get_rect(center = ((self.screen.get_rect().centerx), (self.screen.get_rect().centery) + 50))
+                self.screen.blit(choose_skin_surface, choose_skin_rect)
 
-            if self.restart_btn.clicked and self.game_play == False:  #Cho phép chơi lại
+
+            if self.restart_btn.clicked and self.game_play == False:  #Cho phép chơi lại khi click btn restart
                 self.game_play = True
                 self.restart_btn.clicked = False
                 pipe.clear()
