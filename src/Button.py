@@ -3,22 +3,15 @@ from pygame import mixer
 
 pygame.init()
 font = pygame.font.Font(r'flappy-bird-assets-master\04B_19__.TTF', 20)
-
-move_pointer = pygame.mixer.Sound("flappy-bird-assets-master/audio/coin.wav")
+# Lớp Button
 class Button:
-    size = (110, 40)
-    position = (0, 0)
-    text = ""
-    rect = None
-    color = (0, 0, 0)
-    text_color = (0, 0, 0)
-    '''pointer = pygame.image.load(r"flappy-bird-assets-master\sprites\pointer.png").convert()
-    pointer = pygame.transform.scale(pointer, (40,40))
-    pointer = pygame.transform.flip(pointer, True, False)
-    pointer = pygame.transform.rotate(pointer, 100)
-    pointer_rect = pointer.get_rect(center = (0,0))'''
-    pointed = False
-    clicked = False
+    size = (110, 40)   #Kích thước nút
+    position = (0, 0)  #Vị trí của Button 
+    text = ""          #Nội dung
+    rect = None        #Rectangle
+    color = (0, 0, 0)  #Màu của Button
+    text_color = (0, 0, 0)  #Màu của text
+    clicked = False         #Button đã được click hay chưa
 
     def __init__(self, position, color, text, text_color):
         self.text = text
@@ -27,9 +20,6 @@ class Button:
         self.position = position
         self.rect = pygame.rect.Rect(self.position, self.size)
         self.clicked = False
-        if self.text == "New Game":
-            self.pointed = True
-        else: self.pointed = False
 
     def draw(self, screen):
         the_text = font.render(self.text, True, self.text_color)
@@ -40,9 +30,6 @@ class Button:
             pygame.draw.rect(screen, self.color, self.rect, 0, 5)
         pygame.draw.rect(screen, "white", self.rect, 1, 5)
         screen.blit(the_text, text_rec)
-        '''if self.pointed:
-            pointer_rect = self.pointer.get_rect(center=(self.rect.centerx - self.size[0], self.rect.centery))
-            screen.blit(self.pointer, self.pointer_rect)'''
 
     def hover_check(self):
         mouse_pos = pygame.mouse.get_pos()

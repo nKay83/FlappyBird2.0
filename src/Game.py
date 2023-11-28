@@ -108,11 +108,6 @@ class FlappyBird:
                     bird.Bird_Flap()
                     
                 if event.type == pygame.KEYDOWN:
-                    '''if event.key == pygame.K_SPACE and self.show_start_screen:
-                        self.screen_start_rect.centerx = 1000
-                        self.screen_start_rect.centery = 1000
-                        self.show_start_screen = False'''
-                    
                     #Event bay của chim
                     if event.key == pygame.K_SPACE and self.game_play and self.choose_skin:
                         bird.bird_y = -5
@@ -251,4 +246,3 @@ class FlappyBird:
             
             #clock 120
             self.clock.tick(120)
-
