@@ -10,12 +10,6 @@ class Pipe:
 
     def blit(self, screen):
         screen.blit(self.pipe_surface,self.rect)
-
-    # def random_to_move(self):
-    #     if(self.flagMove == False):
-    #         if(random.choice([0,1]) == 1):
-    #             self.flagMove = True
-    #     return self.flagMove
     
 
 class PipeTop(Pipe):
@@ -27,19 +21,19 @@ class PipeTop(Pipe):
     
     def move_up_down(self):
         if(self.flagStop):
-            self.move_up()
-        else:
             self.move_down()
+        else:
+            self.move_up()
             
     
-    def move_up(self):
-        if(self.rect.bottom >= self.anchor +20):
+    def move_down(self):
+        if(self.rect.bottom >= self.anchor + 30):
             self.flagStop = False
         else:
             self.rect.centery += 2
 
-    def move_down(self):
-        if(self.rect.bottom <= self.bottomMost):
+    def move_up(self):
+        if(self.rect.bottom <= self.bottomMost ):
             self.flagStop = True
         else:
             self.rect.centery -= 2
@@ -51,18 +45,24 @@ class PipeBot(Pipe):
 
     def move_up_down(self):
         if(self.flagStop):
-            self.move_up()
-        else:
             self.move_down()
+        else:
+            self.move_up()
     
-    def move_up(self):
+    def move_down(self):
         if(self.rect.bottom >= self.bottomMost ):
             self.flagStop = False
         else:
             self.rect.centery += 2
 
-    def move_down(self):
-        if(self.rect.bottom <= self.anchor ):
+    def move_up(self):
+        if(self.rect.bottom <= self.anchor - 30):
+            self.flagStop = True
+        else:
+            self.rect.centery -= 2
+
+    def move_up_with_anchor(self,anchor):
+        if(self.rect.bottom <= anchor ):
             self.flagStop = True
         else:
             self.rect.centery -= 2
@@ -104,65 +104,91 @@ class PipeList:
         for pipe in self.pipe_list:
             pipe.rect.centerx -= 2
     
-    def move_up_down(pipe):
-        if(pipe.flagStop):
-            if(pipe.rect.bottom <= pipe.bottomMost ):
-                pipe.flagStop = False
-            else:
-                pipe.rect.centery -= 2
+    def move_synchronized(self, i):
+        if(self.pipe_list[i].flagStop):
+            self.pipe_list[i].move_down()
+            self.pipe_list[i+1].rect.centery += 2
         else:
-            if(pipe.rect.bottom > pipe.anchor):
-                pipe.flagStop = True
-            else:
-                pipe.rect.centery += 2
-    # def move_OneByOne(self):
+            self.pipe_list[i].move_up_with_anchor(600)
+            self.pipe_list[i+1].rect.centery -= 2
 
+    def draw_synchronized(self, i, screen):
+        if(PipeBot.__instancecheck__(self.pipe_list[i])):
+            self.move_synchronized(i)
+            self.pipe_list[i].blit(screen)
+            self.pipe_list[i+1].blit(screen)
     
 
     #Hàm vẽ ống
-    def draw_pipe(self,screen,score, ):
+    def draw_pipe(self,screen,score):
         spacing = 0  #spacing phục vụ cho idea zic zac
+        i = 0
+        lvUp = 5
         self.move_pipe_horizontally()   #Important hàm luôn chạy để di chuyển ống xuất hiện sang ngang trên screen
         for pipe in self.pipe_list:
-            if(score.score < 1):    #Điểm kích hoạt di chuyển ống
+            i += 1
+            if(score.score < lvUp):    #Điểm kích hoạt di chuyển ống
                 pipe.blit(screen)
-            else:
-            #Di chuyển ống độc lập tự ống nào ống đó tự đi     ((foundation))
-                #pipe.move_up_down() 
-                #pipe.blit(screen)
-
-            #Di chuyển ống random        ((done))
-                self.movable = True      #((cờ hiệu cho phép pipe tạo sau sẽ random thuộc tính flagmove quyết định pipe có được di chuyển hay không))
+            elif(score.score < lvUp *2):
+                # Di chuyển ống độc lập tự ống nào ống đó tự đi     ((foundation))
+                # pipe.move_up_down() 
+                # pipe.blit(screen)
+                #Di chuyển ống random        ((done))
+                self.movable = True         #((cờ hiệu cho phép pipe tạo sau sẽ random thuộc tính flagmove quyết định pipe có được di chuyển hay không))
                 if(pipe.flagMove):
                     pipe.move_up_down()
-                    pipe.blit(screen)
+                    pipe.blit(screen) 
                 else:
                     pipe.blit(screen)
+            elif(score.score < lvUp *3):
+                #Thử di chuyển theo đường zic zac,   ((done))
+                if(spacing == 3 or spacing == 0):
+                    pipe.blit(screen)
+                    if(spacing == 3):
+                        spacing = 0
+                    else:
+                        spacing += 1
+                else:
+                    pipe.move_up_down()
+                    pipe.blit(screen)
+                    spacing +=1
+                    
+            elif(score.score < lvUp * 4):
+                #Thử di chuyển cách khoảng,   ((done))
+                if(spacing >= 2):
+                    pipe.blit(screen)
+                    if(spacing == 3):
+                        spacing = 0
+                    else:
+                        spacing += 1
+                else:
+                    if(i < len(self.pipe_list)):
+                        self.draw_synchronized(i,screen)
+                    pipe.blit(screen)
+                    spacing +=1
 
-            #Thử di chuyển theo đường zic zac,   ((chưa được))
-                # if(spacing == 0):
-                #     pipe.blit(screen)
-                #     spacing += 1
-                # else:
-                #     pipe.move_up_down()
-                #     pipe.blit(screen)
-                #     if(spacing == 2):
-                #         spacing = 0
-                #     else:
-                #         spacing +=1
-
+            else:
+                break
+        #Thử di chuyển ống đồng bộ trên dưới     ((done))
+        while i < len(self.pipe_list):
+            if(PipeBot.__instancecheck__(self.pipe_list[i])):
+                self.move_synchronized(i)
+                self.pipe_list[i].blit(screen)
+                self.pipe_list[i+1].blit(screen)
+                i += 2
+            else:
+                i += 1
             
-            #Thử di chuyển ống đồng bộ trên dưới     ((vẫn))
-                # if(spacing == 0):
-                #     pipe.blit(screen)
-                #     spacing += 1
-                # else:
-                #     pipe.move_up_down()
-                #     pipe.blit(screen)
-                #     if(spacing == 2):
-                #         spacing = 0
-                #     else:
-                #         spacing +=1
+
+
+           
+            
+    #Thử di chuyển ống đồng bộ trên dưới     ((vẫn))
+    # def draw_pipe(self,screen,score,sync):
+    #     i = 0
+    #     while i < len(self.pipe_list):
+    #         self.move_synchronized(i)
+    #         i += 2
 
     #Code cũ
         # else:

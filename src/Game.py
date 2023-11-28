@@ -84,7 +84,7 @@ class FlappyBird:
         for pipe in pipes:
             if bird.bird_rect.colliderect(pipe):
                 pygame.mixer.Sound.play(self.hit)
-                return True
+                return False
         return True
 
     def runGame(self):
