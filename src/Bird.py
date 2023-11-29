@@ -1,5 +1,7 @@
 import pygame, sys, random
 from pygame import mixer
+from src.Pointer import Pointer
+
 pygame.init()
 #Lớp chim
 p = 0.15    #Trọng lực
@@ -7,8 +9,6 @@ class Bird:
     def __init__(self,screen):
         #Âm thanh bay của chim
         self.wing = pygame.mixer.Sound("flappy-bird-assets-master/audio/wing.wav")
-        #Âm thanh di chuyển của pointer chọn skin chim
-        self.move_pointer = pygame.mixer.Sound("flappy-bird-assets-master/audio/coin.wav")
         
         #Ảnh của chim
         self.bird_mid = pygame.image.load(r"flappy-bird-assets-master\sprites\bluebird-midflap.png").convert_alpha()
@@ -42,10 +42,9 @@ class Bird:
         self.yellow_bird = pygame.transform.scale_by(self.yellow_bird, 1.2)
         self.yellowbird_rect = self.yellow_bird.get_rect(center = (self.redbird_rect.centerx + 100, screen.get_rect().centery))
 
-        self.pointer = pygame.image.load(r"flappy-bird-assets-master\sprites\pointer.png").convert_alpha()
-        self.pointer = pygame.transform.scale(self.pointer, (40,40))
-        self.pointer_rect = self.pointer.get_rect(center = (screen.get_rect().centerx + 5, screen.get_rect().centery + 40))
-    
+        #Pointer của chim
+        self.pointer = Pointer(screen, True, False, (screen.get_rect().centerx + 5, screen.get_rect().centery + 40))
+
     #Hàm xoay chim
     def rotate_bird(self):
         new_bird = pygame.transform.rotozoom(self.bird, self.bird_y * 3, 1)
@@ -77,24 +76,24 @@ class Bird:
         screen.blit(self.red_bird, self.redbird_rect)
         screen.blit(self.blue_bird, self.bluebird_rect)
         screen.blit(self.yellow_bird, self.yellowbird_rect)
-        screen.blit(self.pointer, self.pointer_rect)
+        self.pointer.draw(screen)
         text_surface = game_font.render('Choose skin', True, (255, 255, 255))
         text_rect = text_surface.get_rect(center = ((screen.get_rect().centerx), 200))
         screen.blit(text_surface, text_rect)
     
     #Hàm di chuyển pointer chọn skin chim sang phải
     def move_pointer_RIGHT(self):
-        if self.pointer_rect.centerx != self.yellowbird_rect.centerx + 5:
-            if self.pointer_rect.centerx == self.redbird_rect.centerx + 5:
-                self.pointer_rect.centerx = self.yellowbird_rect.centerx + 5
-            else: self.pointer_rect.centerx = self.redbird_rect.centerx + 5
+        if self.pointer.rect.centerx != self.yellowbird_rect.centerx + 5:
+            if self.pointer.rect.centerx == self.redbird_rect.centerx + 5:
+                self.pointer.rect.centerx = self.yellowbird_rect.centerx + 5
+            else: self.pointer.rect.centerx = self.redbird_rect.centerx + 5
     
     #Hàm di chuyển pointer chọn skin chim sang trái
     def move_pointer_LEFT(self):
-        if self.pointer_rect.centerx != self.bluebird_rect.centerx + 5:
-            if self.pointer_rect.centerx == self.redbird_rect.centerx + 5:
-                self.pointer_rect.centerx = self.bluebird_rect.centerx + 5
-            else: self.pointer_rect.centerx = self.redbird_rect.centerx + 5
+        if self.pointer.rect.centerx != self.bluebird_rect.centerx + 5:
+            if self.pointer.rect.centerx == self.redbird_rect.centerx + 5:
+                self.pointer.rect.centerx = self.bluebird_rect.centerx + 5
+            else: self.pointer.rect.centerx = self.redbird_rect.centerx + 5
     
     #Hàm chọn chim xanh
     def choose_bluebird(self):
