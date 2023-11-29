@@ -42,12 +42,6 @@ class Button:
         if self.pointed:
             return True
         else: return False
-        ''' mouse_pos = pygame.mouse.get_pos()
-        if self.rect.collidepoint(mouse_pos) and not self.clicked:
-            if pygame.mouse.get_pressed()[0]:
-                self.clicked = True
-            return True
-        else: return False'''
     
     def click(self):
         self.clicked = True
