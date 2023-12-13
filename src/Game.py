@@ -4,11 +4,9 @@ from src.PipeList import PipeList
 from src.Score import Score
 from src.Button import Button
 from src.Floor import Floor
-from src.Pointer import Pointer
 from pygame import mixer
 
 window = (346, 614)
-
 class FlappyBird:
     pygame.init()
 
@@ -23,7 +21,6 @@ class FlappyBird:
 
     #Các biến của game
     time_counter = 0
-    p = 0.15    #Trọng lực
     start_time = pygame.time.get_ticks()
     game_font = pygame.font.Font(r'flappy-bird-assets-master\04B_19__.TTF', 40)
 
@@ -57,12 +54,18 @@ class FlappyBird:
     screen_start = pygame.transform.scale_by(screen_start, 1.2)
     screen_start_rect = screen_start.get_rect(center = (window[0]/2, window[1]/2 - 100))
 
-    #Các nút
+    #Các nút trong trò chơi
     btn_x_pos = window[0]/2 - Button.size[0]/2
-    new_game_btn = Button(screen, (btn_x_pos, window[1]/2 + 30), (255, 94, 14), "New Game", (255, 255, 255), True, (0,0))
-    continue_btn = Button(screen, (btn_x_pos, window[1]/2 + 100), (255, 94, 14), "Continue", (255, 255, 255), False, (0,0))
-    exit_btn = Button(screen, (btn_x_pos, window[1]/2 + 170), (255, 94, 14), "Quit", (255, 255, 255), False, (0,0))
-    restart_btn = Button(screen, (btn_x_pos, window[1]/2 + 100), (255, 94, 14), "Restart", (255, 255, 255), False, (0,0))
+        #Nút bắt đầu game mới, reset lại điểm cao nhất
+    new_game_btn = Button(screen, (btn_x_pos, window[1]/2 + 30), "New Game", True, (0,0))   
+        #Nút tiếp tục chơi mà không reset điểm cao nhất
+    continue_btn = Button(screen, (btn_x_pos, window[1]/2 + 100), "Continue", False, (0,0)) 
+        #Nút thoát
+    exit_btn = Button(screen, (btn_x_pos, window[1]/2 + 170), "Quit", False, (0,0))  
+        #Nút chơi lại khi thua
+    restart_btn = Button(screen, (btn_x_pos, window[1]/2 + 100), "Restart", False, (0,0))   
+        #Nút quay lại menu
+    return_menu_btn = Button(screen, (btn_x_pos, window[1]/2 + 170), "Menu", False, (0,0))  
     
     pipe_surface = pygame.image.load(r"flappy-bird-assets-master\sprites\pipe-red.png")
     pipe_surface = pygame.transform.scale_by(pipe_surface, 1.2)
@@ -87,6 +90,14 @@ class FlappyBird:
                 pygame.mixer.Sound.play(self.die)
                 return False
         return True
+    
+    #Hàm xử lý chơi lại khi thua trò chơi (nhấn nút restart (chơi lại) hoặc nhấn nút menu (quay về menu đầu trò chơi))
+    def reset_game(self, bird, pipe, score):
+        self.game_play = True
+        pipe.clear()
+        bird.bird_y = 0
+        bird.bird_rect.center = (50, (window[1] - 134)/2)
+        score.score = 0
 
     def runGame(self):
         
@@ -129,8 +140,8 @@ class FlappyBird:
                                     self.exit_btn.pointed, self.continue_btn.pointed = False, True
                         elif not self.game_play:
                             if not self.restart_btn.pointed:
-                                if self.exit_btn.pointed:
-                                    self.exit_btn.pointed, self.restart_btn.pointed = False, True
+                                if self.return_menu_btn.pointed:
+                                    self.return_menu_btn.pointed, self.restart_btn.pointed = False, True
 
                         #Event di chuyển pointer lên để chọn nút
                     if event.key == pygame.K_DOWN and (self.show_start_screen or not self.game_play): 
@@ -142,9 +153,9 @@ class FlappyBird:
                                 elif self.continue_btn.pointed:
                                     self.continue_btn.pointed, self.exit_btn.pointed = False, True
                         elif not self.game_play:
-                            if not self.exit_btn.pointed:
+                            if not self.return_menu_btn.pointed:
                                 if self.restart_btn.pointed:
-                                    self.restart_btn.pointed, self.exit_btn.pointed = False, True
+                                    self.restart_btn.pointed, self.return_menu_btn.pointed = False, True
 
                         #Event di chuyển pointer chọn skin chim sang phải
                     if event.key == pygame.K_RIGHT and self.choose_skin == False and self.show_start_screen == False and self.show_choose_skin_screen:
@@ -167,11 +178,7 @@ class FlappyBird:
                         #Chọn các nút khi thua
                         elif not self.game_play:
                             if self.restart_btn.pointed: self.restart_btn.click()
-                            else: self.exit_btn.click()
-
-                    #Event chọn nút ở màn hình khi thua game
-                        #Nếu ấn phím cách khi pointer đang trỏ vào nút thì nút đó được click (bỏ nút Quit vì đã xử lý bên trên)
-                        if self.new_game_btn.pointed: self.new_game_btn.clicked = True
+                            else: self.return_menu_btn.click()
 
                     #Event chọn skin chim
                     if event.key == pygame.K_SPACE and self.show_choose_skin_screen:
@@ -247,10 +254,6 @@ class FlappyBird:
                 
                 #Vẽ ống
                 pipe.draw_pipe(self.screen,score)
-                # for i in range(10):
-                # if(score.score < 1):
-                # self.pipe_list_bot[i].blit(screen)
-                    # self.screen.blit(self.pipe_surface, self.pipe_surface_rect)
                 
                 # Vẽ lại sàn
                 floor.draw_floor(self.screen)
@@ -272,12 +275,15 @@ class FlappyBird:
                 #Va chạm
                 self.game_play = self.check_collision(bird,pipe.pipe_list)
 
+            #Hiển thị màn hình khi thua
             elif self.game_play == False and self.show_start_screen == False and self.choose_skin:
+                #Hiển thị điểm hiện tại và điểm cao nhất
                 self.screen.blit(self.screen_over, self.screen_over_rect)
                 score.score_view(self.screen,self.game_font,self.game_play)
-                if not self.restart_btn.pointed and not self.exit_btn.pointed: self.restart_btn.pointed = True
+                #Hiển thị nút restart và nút menu
+                if not self.restart_btn.pointed and not self.return_menu_btn.pointed: self.restart_btn.pointed = True
                 self.restart_btn.draw(self.screen)
-                self.exit_btn.draw(self.screen)
+                self.return_menu_btn.draw(self.screen)
                 self.screen_start_rect.centerx = 1000
                 self.screen_start_rect.centery = 1000
                 #Thêm dòng chữ "Press c key to choose skin"
@@ -286,16 +292,20 @@ class FlappyBird:
                 choose_skin_rect = choose_skin_surface.get_rect(center = ((self.screen.get_rect().centerx), (self.screen.get_rect().centery) + 50))
                 self.screen.blit(choose_skin_surface, choose_skin_rect)
 
-            #Cho phép chơi lại khi click btn restart
-            if self.restart_btn.clicked and self.game_play == False:  
-                self.game_play = True
-                self.restart_btn.clicked = False
-                pipe.clear()
-                bird.bird_y = 0
-                bird.bird_rect.center = (50, (window[1] - 134)/2)
-                score.score = 0
+            #Cho phép chơi lại khi click nút restart và quay lại menu khi click nút menu
+            if not self.game_play:
+                if self.restart_btn.clicked:
+                    self.restart_btn.clicked = False
+                    self.reset_game(bird, pipe, score)
+                elif self.return_menu_btn.clicked:
+                    self.return_menu_btn.clicked, self.return_menu_btn.pointed = False, False
+                    self.new_game_btn.clicked, self.new_game_btn.pointed = False, True
+                    self.continue_btn.clicked, self.continue_btn.pointed = False, False
+                    self.choose_skin = False
+                    self.show_start_screen = True
+                    self.screen_start_rect.center = (window[0]/2, window[1]/2 - 100)
+                    self.reset_game(bird, pipe, score)
             
             pygame.display.update()
-            
             #clock 120
             self.clock.tick(120)
